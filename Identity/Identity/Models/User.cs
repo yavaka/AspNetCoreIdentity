@@ -1,4 +1,4 @@
-﻿namespace Identity
+﻿namespace Identity.Models
 {
     public class User
     {

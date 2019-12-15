@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Identity.Identity;
+using Identity.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -25,8 +27,8 @@ namespace Identity
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-
-            services.AddIdentityCore<string>(options => { });
+            services.AddMvc();
+            services.AddIdentityCore<User>(options => { });
             services.AddScoped<IUserStore<User>, UserStore>();
         }
 

@@ -5,14 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using System.Data.Common;
+using Identity.Models;
 
-namespace Identity
+namespace Identity.Identity
 {
     public class UserStore : IUserStore<User>, IUserPasswordStore<User>
     {
         public static DbConnection GetOpenConnection()
         {
-            var connection = new SqlConnection("Data Source=(localdb)MSSQLLocalDB; database = Asp.NetCoreIdentity;trusted_connection=yes;");
+            var connection = new SqlConnection("Data Source=(localdb)\\MSSQLLocalDB; database = AspNetCoreIdentity;trusted_connection=true;");
 
             connection.Open();
             return connection;
