@@ -30,6 +30,10 @@ namespace Identity
             services.AddMvc();
             services.AddIdentityCore<User>(options => { });
             services.AddScoped<IUserStore<User>, UserStore>();
+
+            //Login Service (cookies)
+            services.AddAuthentication("cookies")
+                .AddCookie("cookies", options => options.LoginPath = "/Home/Login");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,8 +49,10 @@ namespace Identity
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseAuthentication();
 
             app.UseRouting();
 

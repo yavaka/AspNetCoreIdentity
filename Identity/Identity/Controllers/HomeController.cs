@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Identity.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Identity.Controllers
 {
@@ -24,6 +27,13 @@ namespace Identity.Controllers
 
         public IActionResult Index()
         {
+            return View();
+        }
+
+        [Authorize]
+        public IActionResult About()
+        {
+            ViewData["Message"] = "Just ABOUT page.";
             return View();
         }
 
@@ -65,6 +75,36 @@ namespace Identity.Controllers
                 return View("Success");
             }
 
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Login() 
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginModel model) 
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByNameAsync(model.UserName);
+
+                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+                {
+                    var identity = new ClaimsIdentity("cookies");
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
+                    identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
+
+                    await HttpContext.SignInAsync("cookies", new ClaimsPrincipal(identity));
+
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError("", "Invalid UserName or Password");
+            }
             return View();
         }
     }
