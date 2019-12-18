@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Identity.Identity;
 using Identity.Models;
@@ -8,6 +9,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +19,8 @@ namespace Identity
 {
     public class Startup
     {
+        private const string CONNECTION_STRING = @"Server=(localdb)\mssqllocaldb; Database=AspNetCoreIdentity.IdentityUser; Integrated Security=True; Trusted_Connection=True";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -26,10 +31,17 @@ namespace Identity
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
             services.AddMvc();
-            services.AddIdentityCore<User>(options => { });
-            services.AddScoped<IUserStore<User>, UserStore>();
+
+            
+            var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+            services.AddDbContext<IdentityDbContext>(opt => opt.UseSqlServer(CONNECTION_STRING, sql => sql.MigrationsAssembly(migrationAssembly)));
+
+
+            services.AddIdentityCore<IdentityUser>(options => { });
+
+            //Service for Custom Identity User Store
+            services.AddScoped<IUserStore<IdentityUser>, UserOnlyStore<IdentityUser, IdentityDbContext>>();
 
             //Login Service (cookies)
             services.AddAuthentication("cookies")

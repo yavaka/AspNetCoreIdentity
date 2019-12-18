@@ -16,10 +16,10 @@ namespace Identity.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public HomeController(ILogger<HomeController> logger,
-                              UserManager<User> userManager)
+                              UserManager<IdentityUser> userManager)
         {
             this._logger = logger;
             this._userManager = userManager;
@@ -64,7 +64,7 @@ namespace Identity.Controllers
 
                 if (user == null)
                 {
-                    user = new User
+                    user = new IdentityUser
                     {
                         Id = Guid.NewGuid().ToString(),
                         UserName = model.UserName
