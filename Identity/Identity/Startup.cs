@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Identity.Data;
 using Identity.Identity;
 using Identity.Models;
 using Microsoft.AspNetCore.Builder;
@@ -19,7 +20,7 @@ namespace Identity
 {
     public class Startup
     {
-        private const string CONNECTION_STRING = @"Server=(localdb)\mssqllocaldb; Database=AspNetCoreIdentity.IdentityUser; Integrated Security=True; Trusted_Connection=True";
+        private const string CONNECTION_STRING = @"Server=(localdb)\mssqllocaldb; Database=AspNetCoreIdentity.User; Integrated Security=True; Trusted_Connection=True";
 
         public Startup(IConfiguration configuration)
         {
@@ -35,13 +36,13 @@ namespace Identity
 
             
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            services.AddDbContext<IdentityDbContext>(opt => opt.UseSqlServer(CONNECTION_STRING, sql => sql.MigrationsAssembly(migrationAssembly)));
+            services.AddDbContext<UserDbContext>(opt => opt.UseSqlServer(CONNECTION_STRING, sql => sql.MigrationsAssembly(migrationAssembly)));
 
 
-            services.AddIdentityCore<IdentityUser>(options => { });
+            services.AddIdentityCore<User>(options => { });
 
             //Service for Custom Identity User Store
-            services.AddScoped<IUserStore<IdentityUser>, UserOnlyStore<IdentityUser, IdentityDbContext>>();
+            services.AddScoped<IUserStore<User>, UserOnlyStore<User, UserDbContext>>();
 
             //Login Service (cookies)
             services.AddAuthentication("cookies")

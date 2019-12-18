@@ -1,10 +1,11 @@
-﻿namespace Identity.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Identity.Models
 {
-    public class User
+    public class User : IdentityUser
     {
-        public string Id { get; set; }
-        public string UserName { get; set; }
-        public string NormalizedUserName { get; set; }
-        public string PasswordHash { get; set; }
+        public string Locale { get; set; } = "en-GB";
+
+        public string OrganizationId { get; set; }
     }
 }
