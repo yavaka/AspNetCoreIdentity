@@ -17,12 +17,15 @@ namespace Identity.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<User> _userManager;
+        private readonly IUserClaimsPrincipalFactory<User> _claimsPrincipalFactory;
 
         public HomeController(ILogger<HomeController> logger,
-                              UserManager<User> userManager)
+                              UserManager<User> userManager,
+                              IUserClaimsPrincipalFactory<User> claimsPrincipalFactory)
         {
             this._logger = logger;
             this._userManager = userManager;
+            this._claimsPrincipalFactory = claimsPrincipalFactory;
         }
 
         public IActionResult Index()
@@ -60,7 +63,7 @@ namespace Identity.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
+                var user = await this._userManager.FindByNameAsync(model.UserName);
 
                 if (user == null)
                 {
@@ -70,7 +73,7 @@ namespace Identity.Controllers
                         UserName = model.UserName
                     };
 
-                    var result = await _userManager.CreateAsync(user, model.Password);
+                    var result = await this._userManager.CreateAsync(user, model.Password);
                 }
                 return View("Success");
             }
@@ -90,15 +93,13 @@ namespace Identity.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
+                var user = await this._userManager.FindByNameAsync(model.UserName);
 
                 if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
                 {
-                    var identity = new ClaimsIdentity("cookies");
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                    identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
+                    var principal = await this._claimsPrincipalFactory.CreateAsync(user);
 
-                    await HttpContext.SignInAsync("cookies", new ClaimsPrincipal(identity));
+                    await HttpContext.SignInAsync("Identity.Application", principal);
 
                     return RedirectToAction("Index");
                 }
