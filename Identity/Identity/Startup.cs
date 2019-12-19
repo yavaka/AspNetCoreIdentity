@@ -42,6 +42,8 @@ namespace Identity
             services.AddIdentity<User, IdentityRole>(options => { })
                 .AddEntityFrameworkStores<UserDbContext>();
 
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomUserClaimsPrincipalFactory>();
+            
             services.ConfigureApplicationCookie(options => options.LoginPath = "/Home/Login");
 
 

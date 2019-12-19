@@ -18,14 +18,17 @@ namespace Identity.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<User> _userManager;
         private readonly IUserClaimsPrincipalFactory<User> _claimsPrincipalFactory;
+        private readonly SignInManager<User> _signInManager;
 
         public HomeController(ILogger<HomeController> logger,
                               UserManager<User> userManager,
-                              IUserClaimsPrincipalFactory<User> claimsPrincipalFactory)
+                              IUserClaimsPrincipalFactory<User> claimsPrincipalFactory,
+                              SignInManager<User> signInManager)
         {
             this._logger = logger;
             this._userManager = userManager;
             this._claimsPrincipalFactory = claimsPrincipalFactory;
+            this._signInManager = signInManager;
         }
 
         public IActionResult Index()
@@ -93,14 +96,10 @@ namespace Identity.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await this._userManager.FindByNameAsync(model.UserName);
+                var signInResult = await this._signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
 
-                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+                if (signInResult.Succeeded)
                 {
-                    var principal = await this._claimsPrincipalFactory.CreateAsync(user);
-
-                    await HttpContext.SignInAsync("Identity.Application", principal);
-
                     return RedirectToAction("Index");
                 }
 
