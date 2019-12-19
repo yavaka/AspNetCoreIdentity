@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Identity.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,7 @@ namespace Identity.Controllers
             this._signInManager = signInManager;
         }
 
+        //
         #region Register
         [HttpGet]
         public IActionResult Register()
@@ -51,14 +53,27 @@ namespace Identity.Controllers
                     };
 
                     var result = await this._userManager.CreateAsync(user, model.Password);
+
+                    if (result.Succeeded)
+                    {
+                        var token = await this._userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var confirmationEmail = Url.Action("ConfirmEmailAddress", "Account", new
+                        {
+                            token,
+                            user.Email
+                        }, Request.Scheme);
+
+                        System.IO.File.WriteAllText("confirmationLink.txt", confirmationEmail);
+                        return View("Success");
+                    }
                 }
-                return View("Success");
             }
 
             return View();
         }
-#endregion
+        #endregion
 
+        //
         #region Login
         [HttpGet]
         public IActionResult Login()
@@ -72,11 +87,21 @@ namespace Identity.Controllers
         {
             if (ModelState.IsValid)
             {
-                var signInResult = await this._signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
+                var user = await this._userManager.FindByNameAsync(model.UserName);
 
-                if (signInResult.Succeeded)
+                if (user != null && await this._userManager.CheckPasswordAsync(user, model.Password))
                 {
-                    return RedirectToAction("Index","Home");
+                    if (!await this._userManager.IsEmailConfirmedAsync(user))
+                    {
+                        ModelState.AddModelError("", "Email is not confirmed");
+                        return View();
+                    }
+
+                    var principal = await this._claimsPrincipalFactory.CreateAsync(user);
+
+                    await HttpContext.SignInAsync("Identity.Application", principal);
+
+                    return RedirectToAction("Index", "Home");
                 }
 
                 ModelState.AddModelError("", "Invalid UserName or Password");
@@ -85,9 +110,10 @@ namespace Identity.Controllers
         }
         #endregion
 
+        //
         #region ResetPassword
         [HttpGet]
-        public IActionResult ForgotPassword() 
+        public IActionResult ForgotPassword()
         {
             return View();
         }
@@ -102,7 +128,7 @@ namespace Identity.Controllers
                 if (user != null)
                 {
                     var token = await this._userManager.GeneratePasswordResetTokenAsync(user);
-                    var resetUrl = Url.Action("ResetPassword","Account", new 
+                    var resetUrl = Url.Action("ResetPassword", "Account", new
                     {
                         token,
                         user.Email
@@ -119,7 +145,7 @@ namespace Identity.Controllers
         }
 
         [HttpGet]
-        public IActionResult ResetPassword(string token, string email) 
+        public IActionResult ResetPassword(string token, string email)
         {
             return View(new ResetPasswordModel
             {
@@ -154,5 +180,22 @@ namespace Identity.Controllers
             return View();
         }
         #endregion
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmailAddress(string token, string email) 
+        {
+            var user =await this._userManager.FindByEmailAsync(email);
+
+            if (user != null)
+            {
+                var result = await this._userManager.ConfirmEmailAsync(user,token);
+                
+                if (result.Succeeded)
+                {
+                    return View("Success");
+                }
+            }
+            return RedirectToAction("Error","Home");
+        }
     }
 }

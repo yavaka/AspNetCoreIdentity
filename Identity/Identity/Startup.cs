@@ -34,16 +34,19 @@ namespace Identity
         {
             services.AddMvc();
 
-            
+
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             services.AddDbContext<UserDbContext>(opt => opt.UseSqlServer(CONNECTION_STRING, sql => sql.MigrationsAssembly(migrationAssembly)));
 
             //Reset password: .AddDefaultTokenProviders();
-            services.AddIdentity<User, IdentityRole>(options => { })
+            services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedEmail = true;
+            })
                 .AddEntityFrameworkStores<UserDbContext>()
                 .AddDefaultTokenProviders();
 
-            
+
             services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomUserClaimsPrincipalFactory>();
 
             //Reset password
