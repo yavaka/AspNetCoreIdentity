@@ -16,6 +16,8 @@ namespace Identity.Data
 
         }
 
+        public virtual DbSet<Organization> Organizations { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

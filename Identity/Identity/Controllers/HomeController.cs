@@ -53,59 +53,5 @@ namespace Identity.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-
-        [HttpGet]
-        public IActionResult Register() 
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await this._userManager.FindByNameAsync(model.UserName);
-
-                if (user == null)
-                {
-                    user = new User
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        UserName = model.UserName
-                    };
-
-                    var result = await this._userManager.CreateAsync(user, model.Password);
-                }
-                return View("Success");
-            }
-
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult Login() 
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginModel model) 
-        {
-            if (ModelState.IsValid)
-            {
-                var signInResult = await this._signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
-
-                if (signInResult.Succeeded)
-                {
-                    return RedirectToAction("Index");
-                }
-
-                ModelState.AddModelError("", "Invalid UserName or Password");
-            }
-            return View();
-        }
     }
 }

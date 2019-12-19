@@ -38,13 +38,18 @@ namespace Identity
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             services.AddDbContext<UserDbContext>(opt => opt.UseSqlServer(CONNECTION_STRING, sql => sql.MigrationsAssembly(migrationAssembly)));
 
-
+            //Reset password: .AddDefaultTokenProviders();
             services.AddIdentity<User, IdentityRole>(options => { })
-                .AddEntityFrameworkStores<UserDbContext>();
+                .AddEntityFrameworkStores<UserDbContext>()
+                .AddDefaultTokenProviders();
 
-            services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomUserClaimsPrincipalFactory>();
             
-            services.ConfigureApplicationCookie(options => options.LoginPath = "/Home/Login");
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomUserClaimsPrincipalFactory>();
+
+            //Reset password
+            services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(3));
+
+            services.ConfigureApplicationCookie(options => options.LoginPath = "/Account/Login");
 
 
             //Service for Custom Identity User Store

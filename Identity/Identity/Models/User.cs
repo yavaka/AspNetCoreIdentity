@@ -7,5 +7,6 @@ namespace Identity.Models
         public string Locale { get; set; } = "en-GB";
 
         public string OrganizationId { get; set; }
+
     }
 }
