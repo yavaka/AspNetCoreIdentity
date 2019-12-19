@@ -39,18 +39,23 @@ namespace Identity
             services.AddDbContext<UserDbContext>(opt => opt.UseSqlServer(CONNECTION_STRING, sql => sql.MigrationsAssembly(migrationAssembly)));
 
             //Reset password: .AddDefaultTokenProviders();
+            //Email confirmation with custom token provider: .AddTokenProvider<EmailConfirmationTokenProvider<User>>("emailconf")
             services.AddIdentity<User, IdentityRole>(options =>
             {
-                options.SignIn.RequireConfirmedEmail = true;
+                //options.SignIn.RequireConfirmedEmail = true;
+                options.Tokens.EmailConfirmationTokenProvider = "emailconf";
             })
                 .AddEntityFrameworkStores<UserDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddTokenProvider<EmailConfirmationTokenProvider<User>>("emailconf");
 
 
             services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomUserClaimsPrincipalFactory>();
 
-            //Reset password
+            //Reset password options
             services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(3));
+            //Email confirmation options
+            services.Configure<EmailConfirmationTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromDays(2));
 
             services.ConfigureApplicationCookie(options => options.LoginPath = "/Account/Login");
 
